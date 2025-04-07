@@ -5,19 +5,29 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class ReportspageView extends GetView<ReportsController> {
+class ReportspageView extends StatefulWidget {
   const ReportspageView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final String category = Get.arguments["category"] ?? "";
-    final controller = Get.put(ReportsController());
+  State<ReportspageView> createState() => _ReportspageViewState();
+}
 
+class _ReportspageViewState extends State<ReportspageView> {
+  final ReportsController controller = Get.put(ReportsController());
+  int _expandedIndex = -1; // To track the currently expanded index
+
+  @override
+  void initState() {
+    super.initState();
+    final String category = Get.arguments["category"] ?? "";
     if (category.isNotEmpty) {
       controller.selectedCategory.value = category;
       controller.fetchGroupsByCategory(category);
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final Color appBarColor = const Color(0xFF0054A6);
     final Color blueLayer = appBarColor.withOpacity(0.3);
 
@@ -49,12 +59,12 @@ class ReportspageView extends GetView<ReportsController> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              color: blueLayer,
+              color: const Color(0xFFE0F2FF),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
                     onPressed: () => Get.back(),
                   ),
                   Expanded(
@@ -83,15 +93,17 @@ class ReportspageView extends GetView<ReportsController> {
                   itemCount: controller.groupList.length,
                   itemBuilder: (context, index) {
                     final group = controller.groupList[index];
+                    final isExpanded = _expandedIndex == index;
+
                     return Card(
                       color: Colors.white,
                       margin: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
-                      ),
+                          horizontal: 8, vertical: 8),
                       elevation: 2,
                       clipBehavior: Clip.antiAlias,
                       child: ExpansionTile(
+                        key: Key(index.toString()),
+                        initiallyExpanded: isExpanded,
                         title: Text(
                           group.groupName,
                           style: const TextStyle(
@@ -99,7 +111,10 @@ class ReportspageView extends GetView<ReportsController> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        onExpansionChanged: (bool expanded) {
+                        onExpansionChanged: (expanded) {
+                          setState(() {
+                            _expandedIndex = expanded ? index : -1;
+                          });
                           if (expanded) {
                             controller
                                 .fetchMilkingSummaryByGroup(group.groupId);
@@ -126,7 +141,6 @@ class ReportspageView extends GetView<ReportsController> {
                                 (controller.milkingSummary['details']
                                         as Map<String, dynamic>?) ??
                                     {};
-                            final animals = details['animals'] ?? [];
                             final groupTotals = (details['group_totals']
                                     as Map<String, dynamic>?) ??
                                 {};
@@ -137,46 +151,48 @@ class ReportspageView extends GetView<ReportsController> {
                             return Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          Get.toNamed(
-                                            "groupanimaldetailscreen",
-                                            arguments: {
-                                              "category": category,
-                                              "groupId": group.groupId,
-                                              "groupName": group.groupName,
+                                      const Text(
+                                        "Group-wise Totals",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            onPressed: () {
+                                              Get.toNamed(
+                                                "groupanimaldetailscreen",
+                                                arguments: {
+                                                  "category": controller
+                                                      .selectedCategory.value,
+                                                  "groupId": group.groupId,
+                                                  "groupName": group.groupName,
+                                                },
+                                              );
                                             },
-                                          );
-                                        },
-                                        icon: const Icon(Icons.visibility),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          _showDateRangePicker(
-                                            context,
-                                            controller,
-                                            group.groupId,
-                                          );
-                                        },
-                                        icon: const Icon(Icons.search),
-                                      ),
+                                            icon: const Icon(Icons.visibility),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              _showDateRangePicker(context,
+                                                  controller, group.groupId);
+                                            },
+                                            icon: const Icon(Icons.search),
+                                          ),
+                                        ],
+                                      )
                                     ],
                                   ),
-                                  const SizedBox(height: 20),
-                                  const Text(
-                                    "Group-wise Totals",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  const SizedBox(height: 10),
                                   _buildDatewiseTotalsTable(
                                       datewiseTotals, controller, groupTotals),
-                                  const SizedBox(height: 10),
                                 ],
                               ),
                             );
@@ -207,7 +223,6 @@ class ReportspageView extends GetView<ReportsController> {
         DateTime.now().subtract(const Duration(days: 7));
     final DateTime end =
         DateTime.tryParse(controller.endDate) ?? DateTime.now();
-
     final int totalDays = end.difference(start).inDays;
 
     for (int i = 0; i <= totalDays; i++) {
@@ -234,27 +249,18 @@ class ReportspageView extends GetView<ReportsController> {
       );
     }
 
-    // Add the overall totals row
     rows.add(
       DataRow(
         color: MaterialStateProperty.all(Colors.grey.shade300),
         cells: [
-          const DataCell(Text(
-            "Overall Totals",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          )),
-          DataCell(Text(
-            groupTotals['am_total']?.toString() ?? '-',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          )),
-          DataCell(Text(
-            groupTotals['pm_total']?.toString() ?? '-',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          )),
-          DataCell(Text(
-            groupTotals['total']?.toString() ?? '-',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          )),
+          const DataCell(Text("Overall Totals",
+              style: TextStyle(fontWeight: FontWeight.bold))),
+          DataCell(Text(groupTotals['am_total']?.toString() ?? '-',
+              style: const TextStyle(fontWeight: FontWeight.bold))),
+          DataCell(Text(groupTotals['pm_total']?.toString() ?? '-',
+              style: const TextStyle(fontWeight: FontWeight.bold))),
+          DataCell(Text(groupTotals['total']?.toString() ?? '-',
+              style: const TextStyle(fontWeight: FontWeight.bold))),
         ],
       ),
     );

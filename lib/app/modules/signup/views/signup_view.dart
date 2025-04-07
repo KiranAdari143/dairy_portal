@@ -9,92 +9,102 @@ class SignupView extends GetView<SignupController> {
   Widget build(BuildContext context) {
     final SignupController controller = Get.put(SignupController());
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        elevation: 0,
         centerTitle: true,
         toolbarHeight: Get.height * 0.1,
+        backgroundColor: const Color(0xFF0054A6),
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Center(
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: Color(0xFF0054A6),
-                backgroundImage: AssetImage('images/Dhenusya_a.png'),
-              ),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.white,
+              backgroundImage: const AssetImage('images/Dhenusya_a.png'),
             ),
-            SizedBox(width: Get.width * 0.1),
+            const SizedBox(width: 12),
             Text(
               "Dairy Portal",
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-        backgroundColor: Color(0xFF0054A6),
       ),
       body: SingleChildScrollView(
-        child: Container(
-          alignment: Alignment.topCenter,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(height: Get.height * 0.051),
-              Text(
-                "REGISTER NOW",
-                style: TextStyle(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  "REGISTER NOW",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                     color: Color(0xFF0054A6),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: Get.height * 0.051),
-              textBoxWithValidation(
-                label: "Username",
-                hintText: "username",
-                controller: controller.usernamecontroller,
-              ),
-              emailTextBox(controller),
-              mobileNumberTextBox(controller),
-              passwordTextBox(controller),
-              SizedBox(height: Get.height * 0.031),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(left: 10),
-                    child: ElevatedButton(
-                      onPressed: controller.clearFields,
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 60.0),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              side:
-                                  const BorderSide(color: Color(0xFF0054A6)))),
-                      child: const Text(
-                        "CLEAR",
-                        style: TextStyle(color: Color(0xFF0054A6)),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                textBoxWithValidation(
+                  label: "Username",
+                  hintText: "Enter your username",
+                  controller: controller.usernamecontroller,
+                ),
+                emailTextBox(controller),
+                mobileNumberTextBox(controller),
+                passwordTextBox(controller),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: controller.clearFields,
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF0054A6)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text(
+                          "CLEAR",
+                          style: TextStyle(color: Color(0xFF0054A6)),
+                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(right: 10),
-                    child: ElevatedButton(
-                      onPressed: controller.signUp,
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 60.0),
-                          backgroundColor: Color(0xFF0054A6),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5))),
-                      child: const Text(
-                        "SIGNUP",
-                        style: TextStyle(color: Colors.white),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: controller.signUp,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0054A6),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text(
+                          "SIGNUP",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              )
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -102,74 +112,57 @@ class SignupView extends GetView<SignupController> {
   }
 
   Widget emailTextBox(SignupController controller) {
-    return Obx(
-      () => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          textBoxWithValidation(
-            label: "Email",
-            hintText: "email@example.com",
-            controller: controller.emailidcontroller,
-            onChanged: (value) {
-              controller.isEmailValid.value = GetUtils.isEmail(value);
-            },
-            errorText: controller.isEmailValid.value
-                ? null
-                : "Please enter a valid email",
-          ),
-        ],
-      ),
-    );
+    return Obx(() => textBoxWithValidation(
+          label: "Email",
+          hintText: "email@example.com",
+          controller: controller.emailidcontroller,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (value) {
+            controller.isEmailValid.value = GetUtils.isEmail(value);
+          },
+          errorText: controller.isEmailValid.value
+              ? null
+              : "Please enter a valid email",
+        ));
   }
 
   Widget mobileNumberTextBox(SignupController controller) {
-    return Obx(
-      () => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          textBoxWithValidation(
-            label: "Mobile Number",
-            hintText: "1234567890",
-            controller: controller.mobilenumbercontroller,
-            keyboardType: TextInputType.phone,
-            onChanged: (value) {
-              controller.isMobileValid.value = GetUtils.isPhoneNumber(value);
-            },
-            errorText: controller.isMobileValid.value
-                ? null
-                : "Please enter a valid mobile number",
-          ),
-        ],
-      ),
-    );
+    return Obx(() => textBoxWithValidation(
+          label: "Mobile Number",
+          hintText: "Enter your mobile number",
+          controller: controller.mobilenumbercontroller,
+          keyboardType: TextInputType.phone,
+          onChanged: (value) {
+            controller.isMobileValid.value = GetUtils.isPhoneNumber(value);
+          },
+          errorText: controller.isMobileValid.value
+              ? null
+              : "Please enter a valid mobile number",
+        ));
   }
 
   Widget passwordTextBox(SignupController controller) {
-    return Obx(
-      () => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(left: 20, bottom: 5),
-            child: const Text(
+    return Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
               "Password",
               style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0054A6)),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0054A6),
+              ),
             ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextField(
+            const SizedBox(height: 6),
+            TextField(
               controller: controller.passwordcontroller,
               obscureText: !controller.isPasswordVisible.value,
               decoration: InputDecoration(
-                hintText: "Password",
+                hintText: "Enter your password",
                 hintStyle:
                     const TextStyle(color: Color.fromARGB(115, 157, 155, 155)),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -184,11 +177,9 @@ class SignupView extends GetView<SignupController> {
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-    );
+            const SizedBox(height: 16),
+          ],
+        ));
   }
 }
 
@@ -200,37 +191,36 @@ Widget textBoxWithValidation({
   ValueChanged<String>? onChanged,
   String? errorText,
 }) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Container(
-        margin: const EdgeInsets.only(left: 20, bottom: 5),
-        child: Text(
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
           label,
           style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0054A6)),
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0054A6),
+          ),
         ),
-      ),
-      Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        child: TextField(
+        const SizedBox(height: 6),
+        TextField(
           controller: controller,
           keyboardType: keyboardType,
           onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle:
-                const TextStyle(color: Color.fromARGB(115, 157, 155, 155)),
+            hintStyle: const TextStyle(
+              color: Color.fromARGB(115, 157, 155, 155),
+            ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(10),
             ),
             errorText: errorText,
           ),
         ),
-      ),
-      const SizedBox(height: 10),
-    ],
+      ],
+    ),
   );
 }

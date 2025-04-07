@@ -25,21 +25,32 @@ class DrawerscreenView extends GetView<DrawerscreenController> {
         child: ListView(
           children: [
             // Drawer Header with only the logo
-            Card(
+            // Card(
+            //   color: appBarColor,
+            //   child: DrawerHeader(
+            //     margin: EdgeInsets.zero,
+            //     padding: EdgeInsets.zero,
+            //     child: Center(
+            //       child: CircleAvatar(
+            //         radius: 20, // fixed radius
+            //         backgroundColor: appBarColor,
+            //         backgroundImage: const AssetImage('images/Dhenusya_a.png'),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // Home
+            Container(
               color: appBarColor,
-              child: DrawerHeader(
-                margin: EdgeInsets.zero,
-                padding: EdgeInsets.zero,
-                child: Center(
-                  child: CircleAvatar(
-                    radius: 20, // fixed radius
-                    backgroundColor: appBarColor,
-                    backgroundImage: const AssetImage('images/Dhenusya_a.png'),
-                  ),
+              padding: const EdgeInsets.symmetric(vertical: 25.0),
+              child: const Center(
+                child: CircleAvatar(
+                  radius: 25,
+                  backgroundImage: AssetImage('images/Dhenusya_a.png'),
+                  backgroundColor: Colors.white,
                 ),
               ),
             ),
-            // Home
             ListTile(
               leading: Icon(
                 Icons.add,

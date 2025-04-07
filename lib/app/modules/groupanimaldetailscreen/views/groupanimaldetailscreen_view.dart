@@ -48,7 +48,7 @@ class GroupanimaldetailscreenView
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              color: blueLayer,
+              color: Colors.blue.shade100,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

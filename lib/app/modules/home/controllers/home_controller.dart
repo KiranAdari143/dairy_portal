@@ -28,27 +28,30 @@ class HomeController extends GetxController {
           backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
-    final uri = Uri.parse("http://13.234.230.143/userLogin");
-    final response = await http.post(uri, body: {
-      "mobile_num": mobilenumber,
-      "password": password,
-    }).timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
+    try {
+      final uri = Uri.parse("http://13.234.230.143/userLogin");
+      final response = await http.post(uri, body: {
+        "mobile_num": mobilenumber,
+        "password": password,
+      }).timeout(const Duration(seconds: 10));
+
       final responseData = jsonDecode(response.body);
 
-      if (responseData['message'] == "Login successful") {
-        // 1. Store the user's mobile number (or any other credentials).
+      if (response.statusCode == 200 &&
+          responseData['message'] == "Login successful") {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('mobilenumber', mobilenumber);
-        // You can store more fields if needed, e.g. 'token'.
 
-        // 2. Navigate to your main screen.
         Get.offAllNamed("/add-datascreen");
       } else {
-        Get.snackbar("Error", "Unexpected: ${responseData['message']}",
+        // Show error message from the API
+        Get.snackbar("Login Failed", responseData['message'] ?? "Unknown error",
             backgroundColor: Colors.red, colorText: Colors.white);
       }
+    } catch (e) {
+      Get.snackbar("Error", "Something went wrong. Please try again.",
+          backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
 }
