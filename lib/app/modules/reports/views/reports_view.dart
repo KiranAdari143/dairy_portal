@@ -12,11 +12,13 @@ class ReportsView extends GetView<ReportsController> {
         ? controller.cowDatewiseTotals
         : controller.buffaloDatewiseTotals;
 
+    // Map records by date for quick lookup.
     Map<String, Map<String, dynamic>> recordsMap = {};
     for (var record in datewiseTotals) {
       recordsMap[record["date"]] = record;
     }
 
+    // Create a list of dates from start to end.
     DateTime start = DateTime.parse(controller.startDate);
     DateTime end = DateTime.parse(controller.endDate);
     List<DateTime> dates = [];
@@ -26,57 +28,51 @@ class ReportsView extends GetView<ReportsController> {
       dates.add(date);
     }
 
-    Widget fixedCell(String text, {Color? backgroundColor}) {
-      return Container(
-        height: 20,
-        alignment: Alignment.center,
-        color: backgroundColor,
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+    // Build DataRows using the design from the second snippet.
+    List<DataRow> rows = [];
+    for (int i = 0; i < dates.length; i++) {
+      DateTime date = dates[i];
+      String formattedIso = DateFormat("yyyy-MM-dd").format(date);
+      var record = recordsMap[formattedIso] ?? {};
+      String am = record["am_total"]?.toString() ?? '';
+      String pm = record["pm_total"]?.toString() ?? '';
+      String total = record["total"]?.toString() ?? '';
+
+      rows.add(
+        DataRow(
+          // Use alternating row colors.
+          color: MaterialStateProperty.resolveWith(
+            (states) => i % 2 == 0 ? Colors.blue.shade50 : Colors.blue.shade100,
+          ),
+          cells: [
+            DataCell(Text(DateFormat("MM/dd").format(date))),
+            DataCell(Text(am)),
+            DataCell(Text(pm)),
+            DataCell(Text(total)),
+          ],
         ),
       );
     }
 
-    return Table(
-      defaultColumnWidth: const FlexColumnWidth(5),
-      border: TableBorder.all(color: Colors.grey.shade300),
-      children: [
-        TableRow(
-          decoration: BoxDecoration(color: Colors.grey.shade300),
-          children: [
-            fixedCell("Date"),
-            fixedCell("Morning"),
-            fixedCell("Evening"),
-            fixedCell("Total"),
-          ],
+    // Wrap the DataTable in a SingleChildScrollView to support horizontal scrolling.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTableTheme(
+        data: DataTableThemeData(
+          headingRowColor: MaterialStateProperty.all(Colors.grey.shade300),
         ),
-        for (DateTime date in dates)
-          TableRow(
-            decoration: const BoxDecoration(
-              color: Color.fromARGB(255, 243, 243, 243),
-            ),
-            children: [
-              fixedCell(DateFormat("MM/dd").format(date)),
-              fixedCell(recordsMap[DateFormat("yyyy-MM-dd").format(date)]
-                          ?["am_total"]
-                      ?.toString() ??
-                  ""),
-              fixedCell(recordsMap[DateFormat("yyyy-MM-dd").format(date)]
-                          ?["pm_total"]
-                      ?.toString() ??
-                  ""),
-              fixedCell(recordsMap[DateFormat("yyyy-MM-dd").format(date)]
-                          ?["total"]
-                      ?.toString() ??
-                  ""),
-            ],
-          ),
-      ],
+        child: DataTable(
+          columnSpacing: 20,
+          dataRowHeight: 40,
+          columns: const [
+            DataColumn(label: Text("Date")),
+            DataColumn(label: Text("Morning")),
+            DataColumn(label: Text("Evening")),
+            DataColumn(label: Text("Total")),
+          ],
+          rows: rows,
+        ),
+      ),
     );
   }
 
@@ -200,31 +196,35 @@ class ReportsView extends GetView<ReportsController> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: TabBarView(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Buffalo",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          const SizedBox(height: 8),
-                          Obx(() =>
-                              _buildDatewiseTotalsTable("Buffalo", controller)),
-                        ],
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Buffalo",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 8),
+                            Obx(() => _buildDatewiseTotalsTable(
+                                "Buffalo", controller)),
+                          ],
+                        ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Cow",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          const SizedBox(height: 8),
-                          Obx(() =>
-                              _buildDatewiseTotalsTable("Cow", controller)),
-                        ],
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Cow",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 8),
+                            Obx(() =>
+                                _buildDatewiseTotalsTable("Cow", controller)),
+                          ],
+                        ),
                       ),
                     ],
                   ),

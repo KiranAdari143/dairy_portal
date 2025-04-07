@@ -44,6 +44,7 @@ class GroupanimaldetailscreenView
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Header area with title and back button.
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -75,7 +76,7 @@ class GroupanimaldetailscreenView
               children: [
                 IconButton(
                   onPressed: () async {
-                    await _DateRangePicker(
+                    await _showDateRangePicker(
                       context,
                       reportsController,
                       groupId,
@@ -107,6 +108,9 @@ class GroupanimaldetailscreenView
     );
   }
 
+  /// Builds a pivot table with custom header rows and a final totals row.
+  /// The design (column spacing, row height, header color, and alternating row colors)
+  /// is set to match your sample _buildDatewiseTotalsTable widget.
   Widget _buildAnimalTotalsPivotTable(
     List<dynamic> animalsData,
     GroupanimaldetailscreenController groupController,
@@ -115,6 +119,7 @@ class GroupanimaldetailscreenView
     String startDateStr,
     String endDateStr,
   ) {
+    // Get unique tag numbers.
     final Set<String> tagNos = {};
     for (var animal in animalsData) {
       final tagNo = animal['tag_no']?.toString() ?? '-';
@@ -122,6 +127,7 @@ class GroupanimaldetailscreenView
     }
     final sortedTagNos = tagNos.toList()..sort();
 
+    // Build DataColumn headers.
     final List<DataColumn> columns = [
       const DataColumn(label: Text("Date")),
       for (var _ in sortedTagNos) ...[
@@ -131,6 +137,14 @@ class GroupanimaldetailscreenView
       ],
     ];
 
+    if (animalsData.isEmpty) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(columns: columns, rows: []),
+      );
+    }
+
+    // Build pivot data from records.
     final Map<String, Map<String, Map<String, String>>> pivotData = {};
     for (var animal in animalsData) {
       final tagNo = animal['tag_no']?.toString() ?? '-';
@@ -150,31 +164,37 @@ class GroupanimaldetailscreenView
       }
     }
 
+    // Generate all dates between startDate and endDate.
     final DateTime startDate = DateTime.tryParse(startDateStr) ??
         DateTime.now().subtract(const Duration(days: 7));
     final DateTime endDate = DateTime.tryParse(endDateStr) ?? DateTime.now();
-
     final List<String> allDates = [];
     for (DateTime date = startDate;
-        date.isBefore(endDate.add(const Duration(days: 1)));
+        !date.isAfter(endDate);
         date = date.add(const Duration(days: 1))) {
       allDates.add(DateFormat('yyyy-MM-dd').format(date));
     }
 
+    // Build DataRows.
     final List<DataRow> rows = [];
 
+    // Header Row 1: Tag Numbers.
     final List<DataCell> headerRow1 = [
       const DataCell(Text("")),
       for (var tag in sortedTagNos) ...[
-        DataCell(Center(
-            child: Text(tag,
-                style: const TextStyle(fontWeight: FontWeight.bold)))),
+        DataCell(
+          Center(
+            child:
+                Text(tag, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ),
         const DataCell(Text("")),
         const DataCell(Text("")),
       ]
     ];
     rows.add(DataRow(cells: headerRow1));
 
+    // Header Row 2: Labels for each tag group.
     final List<DataCell> headerRow2 = [
       const DataCell(
           Text("Date", style: TextStyle(fontWeight: FontWeight.bold))),
@@ -190,14 +210,17 @@ class GroupanimaldetailscreenView
                     : BorderSide.none,
               ),
             ),
-            child: const Center(child: Text("Total")),
+            child:
+                const Center(child: Text("Total", textAlign: TextAlign.center)),
           ),
         ),
       ]
     ];
     rows.add(DataRow(cells: headerRow2));
 
-    for (var date in allDates.reversed) {
+    // Main data rows.
+    for (int i = 0; i < allDates.length; i++) {
+      final date = allDates[i];
       final formattedDate = groupController.formatDate(date);
       final List<DataCell> cells = [DataCell(Text(formattedDate))];
       for (var tag in sortedTagNos) {
@@ -221,14 +244,25 @@ class GroupanimaldetailscreenView
                       : BorderSide.none,
                 ),
               ),
-              child: Center(child: Text(totalValue.toString())),
+              child: Center(
+                  child:
+                      Text(totalValue.toString(), textAlign: TextAlign.center)),
             ),
           ),
         );
       }
-      rows.add(DataRow(cells: cells));
+      // Alternate row colors like your sample table.
+      rows.add(
+        DataRow(
+          color: MaterialStateProperty.all(
+            i % 2 == 0 ? Colors.blue.shade50 : Colors.blue.shade100,
+          ),
+          cells: cells,
+        ),
+      );
     }
 
+    // Final Totals Row.
     final List<DataCell> totalsRow = [
       const DataCell(Text("Overall Totals",
           style: TextStyle(fontWeight: FontWeight.bold))),
@@ -258,45 +292,40 @@ class GroupanimaldetailscreenView
               ),
             ),
             child: Center(
-              child: Text(
-                total,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child: Text(total,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ),
       );
     }
-    rows.add(DataRow(cells: totalsRow));
+    rows.add(DataRow(
+        cells: totalsRow,
+        color: MaterialStateProperty.all(Colors.grey.shade300)));
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTableTheme(
         data: DataTableThemeData(
-          headingRowColor: MaterialStateProperty.all(blueLayer),
-          dataRowColor: MaterialStateProperty.resolveWith((states) {
-            return states.contains(MaterialState.selected)
-                ? appBarColor.withOpacity(0.15)
-                : null;
-          }),
+          headingRowColor: MaterialStateProperty.all(Colors.grey.shade300),
+          dataTextStyle: const TextStyle(fontSize: 14, color: Colors.black87),
           dividerThickness: 1.5,
         ),
         child: DataTable(
           columns: columns,
           rows: rows,
-          columnSpacing: 10,
-          dataRowHeight: 48,
-          headingRowHeight: 0,
+          columnSpacing: 20,
+          dataRowHeight: 40,
+          headingRowHeight: 40,
           showBottomBorder: true,
-          dividerThickness: 1.5,
         ),
       ),
     );
   }
 }
 
-Future<void> _DateRangePicker(
+Future<void> _showDateRangePicker(
   BuildContext context,
   ReportsController controller,
   int groupid,
